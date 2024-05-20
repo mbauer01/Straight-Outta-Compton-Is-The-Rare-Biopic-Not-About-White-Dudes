@@ -1,0 +1,192 @@
+---
+title: "Visualization Compton Project"
+author: "Max Bauer"
+date: "2022-10-30"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##    This is a report done on biopics. A biopic is a film that dramatizes a look at someones life, usually someone famous. This study looks deeper into which people of color have had more biopics than others, and also what gender has had more. The first graphic looks at people of color versus white people. The second graphic looks at what gender these people are. It is concluded that most biopics are done by people of white skin color and typically males. 
+
+## Recreated "‘Straight Outta Compton’ Is The Rare Biopic Not About White Dudes" from https://fivethirtyeight.com/features/straight-outta-compton-is-the-rare-biopic-not-about-white-dudes/
+
+```{r}
+library(knitr)
+
+library(tidyverse)
+library(ggthemes)
+library(fivethirtyeight)
+data(biopics)
+glimpse(biopics)
+```
+
+## This is checking to see if skin color is unknown, or if known, determine if white or nonwhite.
+
+```{r}
+biopics <- biopics %>% 
+  mutate(race_plotting = ifelse(race_known == "Unknown", "Unknown", ifelse(subject_race == "White", "White subjects", "Nonwhite subjects")))
+  
+race_plot <- biopics %>% 
+  group_by(year_release, race_plotting) %>%
+  summarize(total = n())
+
+race_plot$race_plotting <- factor(race_plot$race_plotting, levels = c("White subjects", "Nonwhite subjects", "Unknown"))
+```
+
+## Creating a variable.
+
+```{r}
+ggplot(data = race_plot, aes(x= year_release))
+```
+
+## Adding a geom layer to make bars.
+
+```{r}
+ggplot(data = race_plot, aes(x = year_release, y = total)) +
+  geom_bar(stat = "identity")
+```
+
+## Adding colors.
+
+```{r}
+ggplot(data = race_plot, aes(x= year_release, y = total)) +
+  geom_bar(aes(fill = race_plotting), stat = "identity") 
+```
+
+## Adding labels.
+
+```{r echo=FALSE}
+ggplot(data = race_plot, aes(x= year_release, y = total)) +
+  geom_bar(aes(fill = race_plotting), stat = "identity") + 
+  labs(title = "Biopic Subjects Are Mostly White", 
+       subtitle = "Number of white and nonwhite subjects in 761 biopics since 1915", 
+       x = NULL, 
+       y = NULL)
+```
+
+## Getting the correct colors.
+
+```{r echo=FALSE}
+ggplot(data = race_plot, aes(x= year_release, y = total)) +
+  geom_bar(aes(fill = race_plotting), stat = "identity") + 
+  labs(title = "Biopic Subjects Are Mostly White", 
+       subtitle = "Number of white and nonwhite subjects in 761 biopics since 1915", 
+       x = NULL, 
+       y = NULL) +
+  scale_fill_manual(values = c("#d847be", "#909392", "#36bc6c"))
+```
+
+## Cleaning up the graphic and adding a legend.  
+
+```{r}
+ggplot(data = race_plot, aes(x= year_release, y = total)) +
+  geom_bar(aes(fill = race_plotting), stat = "identity", width = 0.6) + 
+  labs(title = "Biopic Subjects Are Mostly White", 
+       subtitle = "Number of white and nonwhite subjects in 761 biopics since 1915", 
+       x = NULL, 
+       y = NULL) +
+  scale_fill_manual(values = c("#d847be", "#909392", "#36bc6c")) +
+  theme(legend.position = c(.2,.7), 
+        legend.background = element_rect(fill="lightgray",
+                                         size=0.5, 
+                                         linetype="solid", 
+                                         colour ="darkgray"),
+        legend.title = element_blank())
+```
+
+## Using a preloaded theme that fivethirtyeight has available.    
+
+```{r echo=FALSE}
+ggplot(data = race_plot, aes(x= year_release, y = total)) +
+  geom_bar(aes(fill = race_plotting), stat = "identity", width = 0.6) + 
+  labs(title = "Biopic Subjects Are Mostly White", 
+       subtitle = "Number of white and nonwhite subjects in 761 biopics since 1915", 
+       x = NULL, 
+       y = NULL) +
+  scale_fill_manual(values = c("#d847be", "#909392", "#36bc6c")) +
+  theme_fivethirtyeight() +
+  theme(legend.position = c(.2,.7), 
+        legend.background = element_rect(fill="#eaedeb",
+                                         size=0.5, 
+                                         linetype="solid", 
+                                         colour ="darkgray"),
+        legend.direction = "vertical",
+        legend.title = element_blank(),
+        legend.text = element_text(face = "italic"))
+```
+
+## Getting our data by calculating the number of biopics for men and women.
+
+```{r}
+gender_plotting <- biopics %>%
+  group_by(subject_sex,year_release) %>%
+  summarize(total = n())
+```
+
+## Creating labels.  
+
+```{r}
+ggplot(data = gender_plotting, aes(x = year_release, y = total))
+```
+
+## Adding a geom layer.
+
+```{r}
+ggplot(data = gender_plotting, aes(x = year_release, y = total)) +
+  geom_bar(stat = "identity")
+```
+
+## Adding colors and a legend.  
+
+```{r}
+gender_plotting$subject_sex <- factor(gender_plotting$subject_sex, levels = c("Male", "Female"))
+
+ggplot(data = gender_plotting, aes(x = year_release, y = total, fill = subject_sex)) +
+  geom_bar(stat = "identity") 
+```
+
+## Changing width of bars.
+
+```{r}
+g <- ggplot(data = gender_plotting, aes(x = year_release, y = total, fill = subject_sex)) +
+  geom_bar(stat = "identity", width = 0.6) +
+  labs(title = "Biopic Subjects Are Mostly Male", 
+       subtitle = "Number of male and female subjects in 761 biopics since 1915", 
+       x = NULL, 
+       y = NULL)
+
+g
+```
+
+## Getting the correct colors.
+
+```{r}
+g <- g +
+  scale_fill_manual(values = c("#f9cd52", "#4304a0"))
+
+g
+```
+
+## Adding fivethirtyeight theme.
+
+```{r echo=FALSE}
+g <- g +
+  theme_fivethirtyeight() +
+  theme(legend.position = c(.2,.7), 
+        legend.background = element_rect(fill="#eaedeb",
+                                         size=0.5, 
+                                         linetype="solid", 
+                                         colour ="black"),
+                                          
+        legend.direction = "vertical",
+        legend.title = element_blank(),
+        legend.text = element_text(face = "italic"))
+  
+g
+```
